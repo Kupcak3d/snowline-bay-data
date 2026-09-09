@@ -1,0 +1,42 @@
+name: Update Whistler weather
+on:
+  schedule:
+    - cron: '20 * * * *'
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch weather and write weather.json
+        run: |
+          curl -sS "https://api.open-meteo.com/v1/forecast?latitude=50.1163&longitude=-122.9574&current=temperature_2m,cloud_cover,wind_speed_10m,snowfall&hourly=snowfall&forecast_days=1&timezone=America%2FVancouver" -o /tmp/wx.json
+          python3 - <<'EOF'
+          import json, datetime
+          d = json.load(open('/tmp/wx.json'))
+          cur = d['current']
+          now_iso = cur['time']
+          hours = d['hourly']['time']
+          snow = d['hourly']['snowfall']
+          idx = hours.index(now_iso) if now_iso in hours else 0
+          next6 = sum(snow[idx:idx+6])
+          out = {
+            'temp_c': cur['temperature_2m'],
+            'cloud_pct': cur['cloud_cover'],
+            'wind_kmh': cur['wind_speed_10m'],
+            'snow_now_cm': cur['snowfall'],
+            'snow_next6h_cm': round(next6, 2),
+            'updated_at': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'location': 'Whistler, BC'
+          }
+          json.dump(out, open('weather.json','w'), indent=2)
+          EOF
+      - name: Commit and push
+        run: |
+          git config user.name "weather-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add weather.json
+          git diff --quiet --cached || git commit -m "Update weather data"
+          git push
