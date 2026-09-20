@@ -1,9 +1,9 @@
 {
-  "temp_c": 10.8,
-  "cloud_pct": 96,
-  "wind_kmh": 8.5,
+  "temp_c": 13.4,
+  "cloud_pct": 100,
+  "wind_kmh": 4.2,
   "snow_now_cm": 0.0,
   "snow_next6h_cm": 0.0,
-  "updated_at": "2026-09-20T15:28:33Z",
+  "updated_at": "2026-09-20T16:29:44Z",
   "location": "Whistler, BC"
 }
